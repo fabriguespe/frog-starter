@@ -31,7 +31,8 @@ app.use("/*", serveStatic({ root: "./public" }));
 
 app.frame("/", (c) => {
   const { buttonValue, inputText, status } = c;
-
+  const { verifiedWalletAddress } = c.var;
+  console.log(verifiedWalletAddress);
   const fruit = inputText || buttonValue;
   return c.res({
     image: (
