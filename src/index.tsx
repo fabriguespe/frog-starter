@@ -2,6 +2,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, TextInput } from "frog";
 import { devtools } from "frog/dev";
 import { xmtpSupport } from "./xmtp"; // Import XMTP middleware
+import { validateFramesPost } from "@xmtp/frames-validator";
 
 // import { neynar } from 'frog/hubs'
 
