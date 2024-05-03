@@ -1,36 +1,51 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, TextInput } from "frog";
 import { devtools } from "frog/dev";
-import { xmtpSupport, validateXMTPUser } from "./xmtp"; // Import XMTP middleware
+import { xmtpSupport } from "./xmtp"; // Import XMTP middleware
 
 // import { neynar } from 'frog/hubs'
 
-export const app = new Frog({
-  // Supply a Hub to enable frame verification.
-  // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
-});
+export const app = new Frog({});
+// Custom middleware to apply meta tags
 
 app.use("/*", serveStatic({ root: "./public" }));
 
-app.use("/", async (c, next) => {
+export const xmtpSupport = async (c: Context, next: Next) => {
+  // Check if the request is a POST and relevant for XMTP processing
+  if (c.req.method === "POST") {
+    const requestBody = (await c.req.json().catch(() => {})) || {};
+    if (requestBody?.clientProtocol?.includes("xmtp")) {
+      c.set("client", "xmtp");
+      const { verifiedWalletAddress } = await validateFramesPost(requestBody);
+      c.set("verifiedWalletAddress", verifiedWalletAddress);
+      console.log("verifiedWalletAddress", verifiedWalletAddress);
+    } else {
+      // Add farcaster check
+      c.set("client", "farcaster");
+    }
+  }
+
+  // Apply the meta tags directly to the response object
+  if (!c.res.unstable_metaTags) {
+    c.res.unstable_metaTags = [];
+  }
+  c.res.unstable_metaTags.push({
+    property: "of:accepts:xmtp",
+    content: "vNext",
+  });
+
   await next();
-  c.header("x-message", "Only called for `/foo` and `/foo/bar` frames.");
-});
+};
 
 // Use XMTP middleware
-app.use(validateXMTPUser);
 app.use(xmtpSupport);
 
 app.frame("/", (c) => {
-  console.log(c.var);
   const { buttonValue, inputText, status } = c;
 
   const fruit = inputText || buttonValue;
   return c.res({
-    headers: {
-      "Content-Type": "text/html",
-      keywords: "frog, example", // Ensure this is the correct way to set headers in Hono
-    },
+    unstable_metaTags: [{ property: "of:accepts:xmtp", content: "vNext" }],
     image: (
       <div
         style={{
