@@ -3,9 +3,13 @@ import { Button, Frog, TextInput } from "frog";
 import { devtools } from "frog/dev";
 import { validateFramesPost } from "@xmtp/frames-validator";
 
-export const app = new Frog({
-  unstable_metaTags: [{ property: "of:accepts:xmtp", content: "vNext" }],
-});
+const openFrames = (client, version) => {
+  return {
+    unstable_metaTags: [
+      { property: `of:accepts:${client}`, content: version || "vNext" },
+    ],
+  };
+};
 
 const xmtpSupport = async (c: Context, next: Next) => {
   // Check if the request is a POST and relevant for XMTP processing
@@ -24,16 +28,20 @@ const xmtpSupport = async (c: Context, next: Next) => {
   await next();
 };
 
-// Use XMTP middleware
-app.use(xmtpSupport);
+export const app = new Frog(openFrames("xmtp"));
 
 app.use("/*", serveStatic({ root: "./public" }));
 
+// Use XMTP middleware
+app.use(xmtpSupport);
+
 app.frame("/", (c) => {
   const { buttonValue, inputText, status } = c;
-  const { verifiedWalletAddress } = c.var;
-  console.log(verifiedWalletAddress);
   const fruit = inputText || buttonValue;
+
+  // XMTP verified address
+  const { verifiedWalletAddress } = c.var;
+
   return c.res({
     image: (
       <div
