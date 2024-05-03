@@ -546,10 +546,10 @@ fill-range@^7.0.1:
   dependencies:
     to-regex-range "^5.0.1"
 
-frog@latest:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/frog/-/frog-0.9.0.tgz#39adc40d92b5538fcd32a9de24c6bb709b60a07b"
-  integrity sha512-jBgrR+23z71guLc0MYDJcxUEBsjoajrgKWRas3Q6YtKD8mjw5zZmCsCxgiFx9bNgjSJ3vxgKia1xNMZDZsoMWQ==
+frog@^0.9.2:
+  version "0.9.2"
+  resolved "https://registry.yarnpkg.com/frog/-/frog-0.9.2.tgz#05518bff5a131282b8220a6b086c7c89bb3cfe99"
+  integrity sha512-YKblusKn7WcaMQStu9QJZuh9BpmnycsoEw8JQewry4AAYtQ3sYsQLpouteiIb2ZePikSnpnL1PYs4XSqph9zYQ==
   dependencies:
     "@bufbuild/protobuf" "^1.7.2"
     "@hono/node-server" "^1.8.2"

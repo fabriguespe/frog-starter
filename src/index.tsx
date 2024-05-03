@@ -1,17 +1,11 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, TextInput } from "frog";
 import { devtools } from "frog/dev";
-import { xmtpSupport } from "./xmtp"; // Import XMTP middleware
 import { validateFramesPost } from "@xmtp/frames-validator";
 
-// import { neynar } from 'frog/hubs'
+export const app = new Frog();
 
-export const app = new Frog({});
-// Custom middleware to apply meta tags
-
-app.use("/*", serveStatic({ root: "./public" }));
-
-export const xmtpSupport = async (c: Context, next: Next) => {
+const xmtpSupport = async (c: Context, next: Next) => {
   // Check if the request is a POST and relevant for XMTP processing
   if (c.req.method === "POST") {
     const requestBody = (await c.req.json().catch(() => {})) || {};
@@ -25,7 +19,6 @@ export const xmtpSupport = async (c: Context, next: Next) => {
       c.set("client", "farcaster");
     }
   }
-
   // Apply the meta tags directly to the response object
   if (!c.res.unstable_metaTags) {
     c.res.unstable_metaTags = [];
@@ -40,6 +33,8 @@ export const xmtpSupport = async (c: Context, next: Next) => {
 
 // Use XMTP middleware
 app.use(xmtpSupport);
+
+app.use("/*", serveStatic({ root: "./public" }));
 
 app.frame("/", (c) => {
   const { buttonValue, inputText, status } = c;
