@@ -3,7 +3,9 @@ import { Button, Frog, TextInput } from "frog";
 import { devtools } from "frog/dev";
 import { validateFramesPost } from "@xmtp/frames-validator";
 
-export const app = new Frog();
+export const app = new Frog({
+  unstable_metaTags: [{ property: "of:accepts:xmtp", content: "vNext" }],
+});
 
 const xmtpSupport = async (c: Context, next: Next) => {
   // Check if the request is a POST and relevant for XMTP processing
@@ -19,15 +21,6 @@ const xmtpSupport = async (c: Context, next: Next) => {
       c.set("client", "farcaster");
     }
   }
-  // Apply the meta tags directly to the response object
-  if (!c.res.unstable_metaTags) {
-    c.res.unstable_metaTags = [];
-  }
-  c.res.unstable_metaTags.push({
-    property: "of:accepts:xmtp",
-    content: "vNext",
-  });
-
   await next();
 };
 
@@ -41,7 +34,6 @@ app.frame("/", (c) => {
 
   const fruit = inputText || buttonValue;
   return c.res({
-    unstable_metaTags: [{ property: "of:accepts:xmtp", content: "vNext" }],
     image: (
       <div
         style={{
