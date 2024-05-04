@@ -1,11 +1,14 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Button, Frog, TextInput } from "frog";
 import { devtools } from "frog/dev";
+
 import { validateFramesPost } from "@xmtp/frames-validator";
 
-const openFrames = (client, version) => {
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
   return {
     unstable_metaTags: [
+      { property: `of:accepts`, content: version || "vNext" },
       { property: `of:accepts:${client}`, content: version || "vNext" },
     ],
   };
@@ -15,6 +18,8 @@ const xmtpSupport = async (c: Context, next: Next) => {
   // Check if the request is a POST and relevant for XMTP processing
   if (c.req.method === "POST") {
     const requestBody = (await c.req.json().catch(() => {})) || {};
+    console.log("Request Body:", requestBody); // Add this line to log the request body
+
     if (requestBody?.clientProtocol?.includes("xmtp")) {
       c.set("client", "xmtp");
       const { verifiedWalletAddress } = await validateFramesPost(requestBody);
@@ -28,19 +33,19 @@ const xmtpSupport = async (c: Context, next: Next) => {
   await next();
 };
 
-export const app = new Frog(openFrames("xmtp"));
+export const app = new Frog(addMetaTags("xmtp"));
+
+app.use(xmtpSupport);
 
 app.use("/*", serveStatic({ root: "./public" }));
-
-// Use XMTP middleware
-app.use(xmtpSupport);
 
 app.frame("/", (c) => {
   const { buttonValue, inputText, status } = c;
   const fruit = inputText || buttonValue;
 
   // XMTP verified address
-  const { verifiedWalletAddress } = c.var;
+  const { verifiedWalletAddress } = c?.var || {};
+  console.log("verifiedWalletAddress", verifiedWalletAddress);
 
   return c.res({
     image: (
